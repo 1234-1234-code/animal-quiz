@@ -1,0 +1,270 @@
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Animal Quiz 🐾</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      padding: 30px 16px;
+      font-family: Arial, sans-serif;
+      background: #fff4f7;
+      color: #49353e;
+    }
+
+    .container {
+      max-width: 520px;
+      margin: 30px auto;
+      padding: 28px;
+      background: white;
+      border-radius: 24px;
+      box-shadow: 0 8px 25px #e8cbd5;
+    }
+
+    h1 {
+      text-align: center;
+      color: #d66c93;
+    }
+
+    #progress {
+      text-align: center;
+      color: #b66d87;
+      font-size: 14px;
+    }
+
+    #question {
+      font-size: 21px;
+      line-height: 1.5;
+      margin: 24px 0;
+    }
+
+    #choices {
+      display: grid;
+      gap: 10px;
+    }
+
+    .choice {
+      padding: 14px;
+      border: 2px solid #f0dce4;
+      border-radius: 12px;
+      background: white;
+      color: #49353e;
+      text-align: left;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    .choice:hover {
+      background: #fff0f5;
+    }
+
+    .choice.selected {
+      border-color: #d66c93;
+      background: #fff0f5;
+    }
+
+    button:disabled {
+      cursor: default;
+      opacity: 0.8;
+    }
+
+    #feedback {
+      margin: 18px 0;
+      line-height: 1.6;
+      min-height: 24px;
+    }
+
+    #mainButton {
+      width: 100%;
+      padding: 15px;
+      border: none;
+      border-radius: 12px;
+      background: #df80a2;
+      color: white;
+      font-size: 17px;
+      cursor: pointer;
+    }
+
+    #mainButton:disabled {
+      background: #d9bdc8;
+    }
+
+    .emoji {
+      text-align: center;
+      font-size: 42px;
+    }
+  </style>
+</head>
+
+<body>
+  <main class="container">
+    <div class="emoji">🐶 🐱 🐰</div>
+    <h1>Animal Quiz 🐾</h1>
+    <p id="progress">문제 1 / 5</p>
+    <h2 id="question"></h2>
+    <div id="choices"></div>
+    <p id="feedback" aria-live="polite"></p>
+    <button id="mainButton" disabled>정답 확인하기</button>
+  </main>
+
+  <script>
+    const questions = [
+      {
+        question: "사람의 지문처럼 코 무늬가 개체마다 다른 동물은?",
+        choices: ["강아지", "고양이", "토끼", "햄스터"],
+        answer: 1,
+        explanation: "고양이의 코 무늬는 개체마다 차이가 있어!"
+      },
+      {
+        question: "세계에서 가장 큰 동물은?",
+        choices: ["아프리카코끼리", "기린", "대왕고래", "백상아리"],
+        answer: 2,
+        explanation: "대왕고래는 지구 역사상 가장 큰 동물로 알려져 있어."
+      },
+      {
+        question: "박쥐는 어떤 동물 분류에 속할까?",
+        choices: ["조류", "포유류", "파충류", "양서류"],
+        answer: 1,
+        explanation: "박쥐는 새처럼 날지만 새가 아닌 포유류야."
+      },
+      {
+        question: "문어의 심장은 몇 개일까?",
+        choices: ["1개", "2개", "3개", "4개"],
+        answer: 2,
+        explanation: "문어는 심장이 3개야!"
+      },
+      {
+        question: "다음 중 알을 낳는 포유류는?",
+        choices: ["돌고래", "박쥐", "오리너구리", "고양이"],
+        answer: 2,
+        explanation: "오리너구리는 알을 낳는 단공류 포유류야."
+      }
+    ];
+
+    let current = 0;
+    let score = 0;
+    let selected = null;
+    let answered = false;
+
+    const progress = document.getElementById("progress");
+    const question = document.getElementById("question");
+    const choices = document.getElementById("choices");
+    const feedback = document.getElementById("feedback");
+    const mainButton = document.getElementById("mainButton");
+
+    function showQuestion() {
+      const q = questions[current];
+
+      progress.textContent =
+        `문제 ${current + 1} / ${questions.length}`;
+      question.textContent = q.question;
+      choices.innerHTML = "";
+      feedback.textContent = "";
+      selected = null;
+      answered = false;
+      mainButton.disabled = true;
+      mainButton.textContent = "정답 확인하기";
+
+      q.choices.forEach((choice, index) => {
+        const button = document.createElement("button");
+        button.className = "choice";
+        button.textContent =
+          `${String.fromCharCode(65 + index)}. ${choice}`;
+
+        button.addEventListener("click", () => {
+          if (answered) return;
+
+          selected = index;
+
+          document.querySelectorAll(".choice").forEach(btn => {
+            btn.classList.remove("selected");
+          });
+
+          button.classList.add("selected");
+          mainButton.disabled = false;
+        });
+
+        choices.appendChild(button);
+      });
+    }
+
+    function finishQuiz() {
+      progress.textContent = "퀴즈 완료!";
+      question.textContent =
+        score >= 4 ? "동물 박사에 가까워! 🏆" : "도전 완료! 🐾";
+
+      choices.innerHTML = "";
+      feedback.textContent =
+        `총 ${questions.length}문제 중 ${score}문제 정답!`;
+
+      mainButton.textContent = "다시 풀기";
+      mainButton.disabled = false;
+      mainButton.onclick = restartQuiz;
+    }
+
+    function restartQuiz() {
+      current = 0;
+      score = 0;
+      selected = null;
+      mainButton.onclick = checkAnswer;
+      showQuestion();
+    }
+
+    function checkAnswer() {
+      if (current >= questions.length) {
+        restartQuiz();
+        return;
+      }
+
+      if (selected === null) return;
+
+      if (!answered) {
+        answered = true;
+        const q = questions[current];
+        const isCorrect = selected === q.answer;
+
+        if (isCorrect) score++;
+
+        feedback.textContent =
+          (isCorrect ? "정답이야! 🎉 " : "아쉽지만 오답이야. ") +
+          q.explanation;
+
+        document.querySelectorAll(".choice").forEach((btn, index) => {
+          btn.disabled = true;
+
+          if (index === q.answer) {
+            btn.style.borderColor = "#6cb985";
+            btn.style.background = "#eaf8ed";
+          } else if (index === selected) {
+            btn.style.borderColor = "#e58a8a";
+            btn.style.background = "#fff0f0";
+          }
+        });
+
+        mainButton.textContent =
+          current === questions.length - 1 ? "결과 보기" : "다음 문제";
+        mainButton.disabled = false;
+        return;
+      }
+
+      current++;
+
+      if (current >= questions.length) {
+        finishQuiz();
+      } else {
+        showQuestion();
+      }
+    }
+
+    mainButton.onclick = checkAnswer;
+    showQuestion();
+  </script>
+</body>
+</html>
